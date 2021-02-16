@@ -20,6 +20,7 @@ public class LectorDatos
     public LectorDatos(){
         LinkedList<Integer> nodos = leerNodos();
         this.Mapa = new DigraphAL(nodos.size());
+        leerArcos();
     }
     /**
      * Método que se encarga de leer los lugares del archivo txt y devolverlos como una estructura de datos
