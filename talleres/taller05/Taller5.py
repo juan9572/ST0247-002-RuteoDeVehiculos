@@ -1,6 +1,3 @@
-# Python program for solution of M Coloring 
-# problem using backtracking
- 
 class Graph():
  
     def __init__(self, vertices):
@@ -8,17 +5,13 @@ class Graph():
         self.graph = [[0 for column in range(vertices)]\
                               for row in range(vertices)]
  
-    # A utility function to check 
-    # if the current color assignment
-    # is safe for vertex v
     def isSafe(self, v, colour, c):
         for i in range(self.V):
             if self.graph[v][i] == 1 and colour[i] == c:
                 return False
         return True
      
-    # A recursive utility function to solve m
-    # coloring  problem
+    
     def graphColourUtil(self, m, colour, v):
         if v == self.V:
             return True
@@ -36,12 +29,12 @@ class Graph():
             return False
  
         # Print the solution
-        print "Solution exist and Following are the assigned colours:"
+        print ("Solution exist and Following are the assigned colours:")
         for c in colour:
             print c
         return True
  
-# Driver Code
+
 g = Graph(4)
 g.graph = [[0, 1, 1, 1], [1, 0, 1, 0], [1, 1, 0, 1], [1, 0, 1, 0]]
 m = 3
