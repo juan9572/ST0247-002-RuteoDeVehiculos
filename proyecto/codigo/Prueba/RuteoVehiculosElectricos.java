@@ -135,7 +135,7 @@ public class RuteoVehiculosElectricos {
 
         //Problem Parameters
         int NoOfCustomers = m;
-        int NoOfVehicles = 10;
+        int NoOfVehicles = 5;
         double VehicleCap = Q;
 
         //Depot Coordinates
@@ -199,12 +199,12 @@ public class RuteoVehiculosElectricos {
                 " Customers and "+u+" Stations"+" with "+VehicleCap + " Watts of capacity \n");
 
         Solution s = new Solution(n-1, NoOfVehicles, VehicleCap);
-        s.GreedySolution(Nodes, distanceMatrix, r, speed, Tmax);
+        s.GreedySolution(Nodes, distanceMatrix, r, speed, Tmax, pendienteFuncionCarga);
         s.SolutionPrint("Solution After Tabu Search");
 
         draw.drawRoutes(s, "GREEDY_Solution");
         
-        s.GreedySolution(Nodes, distanceMatrix, r, speed, Tmax);
+        s.GreedySolution(Nodes, distanceMatrix, r, speed, Tmax, pendienteFuncionCarga);
 
         s.TabuSearch(TABU_Horizon, distanceMatrix);
 

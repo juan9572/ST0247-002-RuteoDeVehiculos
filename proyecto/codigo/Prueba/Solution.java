@@ -33,15 +33,15 @@ class Solution
     {
         for (int i = 1; i < Nodes.length; i++)
         {
-            if (!Nodes[i].IsRouted && !Nodes[i].IsStation)
+            if (!Nodes[i].IsRouted)
                 return true;
         }
         return false;
     }
 
-    public void GreedySolution(Node[] Nodes , double[][] CostMatrix, double r, double speed, double Tmax) {
+    public void GreedySolution(Node[] Nodes , double[][] CostMatrix, double r, double speed, double Tmax, float pendienteFuncionCarga[]) {
 
-        double CandCost,EndCost;
+        double CandCost,EndCost,demand = 0;
         int VehIndex = 0;
 
         while (UnassignedCustomerExists(Nodes)) {
@@ -55,14 +55,21 @@ class Solution
             }
 
             for (int i = 1; i <= NoOfCustomers; i++) {
+                double[][] pCostMatrix = CostMatrix;
                 if (Nodes[i].IsRouted == false) {
-                    double[][] pCostMatrix = CostMatrix;
                     if (Vehicles[VehIndex].CheckIfFits(Nodes[i].caldemand(Vehicles[VehIndex].CurLoc, pCostMatrix, r, speed))) {
                         CandCost = CostMatrix[Vehicles[VehIndex].CurLoc][i];
                         if (minCost > CandCost) {
                             minCost = CandCost;
+                            demand = Nodes[i].caldemand(Vehicles[VehIndex].CurLoc, pCostMatrix, r, speed);
                             CustIndex = i;
                             Candidate = Nodes[i];
+                        }
+                    }else{
+                        int station = findStation(Nodes, pCostMatrix,Vehicles[VehIndex].CurLoc);
+                        if(Vehicles[VehIndex].CurLoc == station){
+                            Vehicles[VehIndex].carga = 5000;
+                            break;
                         }
                     }
                 }
@@ -90,6 +97,7 @@ class Solution
             else
             {
                 Vehicles[VehIndex].AddNode(Candidate);//If a fitting Customer is Found
+                Vehicles[VehIndex].carga += demand; 
                 Nodes[CustIndex].IsRouted = true;
                 this.Cost += minCost;
             }
@@ -99,6 +107,22 @@ class Solution
         Vehicles[VehIndex].AddNode(Nodes[0]);
         this.Cost +=  EndCost;
 
+    }
+
+    public int findStation(Node[] nodes, double[][] CostMatrix, int CurLoc){
+        int index = 0;
+        double costoMin = 9090909;
+        double distancia;
+        for(int i = 0; i < nodes.length; i++){
+            if(nodes[i].IsStation){
+                distancia = CostMatrix[CurLoc][i];
+                if(distancia < costoMin){
+                    costoMin = distancia;
+                    index = i;
+                }
+            }
+        }
+        return index;
     }
 
 

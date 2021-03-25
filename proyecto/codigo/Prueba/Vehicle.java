@@ -21,14 +21,12 @@ class Vehicle
     public void AddNode(Node Customer )//Add Customer to Vehicle Route
     {
         Route.add(Customer);
-        this.carga +=  Customer.demand;
         this.CurLoc = Customer.NodeId;
     }
 
     public boolean CheckIfFits(double dem) //Check if we have Capacity Violation
     {
-        carga += dem;
-        return (carga <= capacity);
+        return (this.carga + dem <= capacity);
     }
 
 }

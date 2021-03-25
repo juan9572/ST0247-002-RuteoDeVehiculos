@@ -26,7 +26,8 @@ class Node
         this.NodeId = id;
         this.Node_X = x;
         this.Node_Y = y;
-        this.IsRouted = false;
+        this.demand =0;
+        //this.IsRouted = false;
         this.IsStation = false;
         this.IsDepot = false;
     }
@@ -35,18 +36,19 @@ class Node
         this.NodeId = id;
         this.Node_X = x;
         this.Node_Y = y;
+        this.IsRouted = false;
         this.demand = calcularTiempoRecarga();
         this.IsStation = true;
         this.tipo = tipo;
     }
     public double caldemand(int currPos, double[][] distanceMatrix, double r, double speed){
-        double distancia = distanceMatrix[currPos][this.NodeId];
+        double distancia = distanceMatrix[currPos][NodeId];
         double tiempo = distancia/speed;
         double consumo = r * distancia;
-
+        this.demand = consumo;
         return consumo;
     } 
     public static double calcularTiempoRecarga(){
-        
+            return 0.0;
         }
 }
