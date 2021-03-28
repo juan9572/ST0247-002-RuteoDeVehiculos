@@ -6,19 +6,18 @@ import java.util.ArrayList;
  * @author Mauricio Toro, Mateo Agudelo
  */
 public abstract class Digraph {
-    protected int size;
-    protected double speed;
-    public Digraph(int vertices, double speed) {
-        size = vertices;
-        this.speed = speed;
-    }
+	protected int size;
+	protected double speed;
+	public Digraph(int vertices) {
+		size = vertices;
+	}
 
-    public abstract void addArc(int source, int destination, double weight);
+	public abstract void addArc(int source, int destination, double weight);
 
-    public abstract ArrayList<Integer> getSuccessors(int vertex);
+	public abstract ArrayList<Integer> getSuccessors(int vertex);
 
-    public abstract double getWeight(int source, int destination);
-    public int size() {
-        return size;
-    }
+	public abstract double getWeight(int source, int destination);
+	public int size() {
+		return size;
+	}
 }

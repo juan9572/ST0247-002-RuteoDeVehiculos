@@ -1,34 +1,19 @@
 /**
- * version 1.0
- * @author
+ *
+ * @author ljpalaciom
  */
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.ArrayList;
 
+
 public class RuteoVehiculosElectricos {
-    /**
-     * Donde numeroTotalNodos es n,
-     * numeroClientes es m,
-     * numeroEstacionesCarga es u
-     * puntosSoporteCargaBateria es breaks,
-     * tasaConsumoWatts es r,
-     * velocidad es speed,
-     * tiempoMaxDeRuta es Tmax,
-     * tiempoMaxCarga es Smax,
-     * tiempoVisita es St_customer,
-     * capacidadBateria es Q.
-     */
-    int numeroTotalNodos, numeroClientes, numeroEstacionesCarga, puntosSoporteCargaBateria;
-    double tasaConsumoWatts, velocidad, tiempoMaxDeRuta, tiempoMaxCarga, tiempoVisita, capacidadBateria;
+    int n, m, u, breaks;
+    double r, speed, Tmax, Smax, st_customer, Q;
     Digraph mapa;
     short tipoEstacion[];
     float pendienteFuncionCarga[];
     String filename;
-    Pair<Float, Float>[] coordenadas;
+    static Pair<Float, Float>[] coordenadas;
 
     double tiempoSolucion;
 
@@ -46,43 +31,43 @@ public class RuteoVehiculosElectricos {
                 valores[i] = Float.parseFloat(lineaPartida[2]);
             }
 
-            numeroTotalNodos = (int) valores[0];
-            numeroClientes = (int) valores[1];
-            numeroEstacionesCarga = (int) valores[2];
-            puntosSoporteCargaBateria = (int) valores[3];
-            tasaConsumoWatts = valores[4];
-            velocidad = valores[5];
-            tiempoMaxDeRuta = valores[6];
-            tiempoMaxCarga = valores[7];
-            tiempoVisita = valores[8];
-            capacidadBateria = valores[9];
+            n = (int) valores[0];
+            m = (int) valores[1];
+            u = (int) valores[2];
+            breaks = (int) valores[3];
+            r = valores[4];
+            speed = valores[5];
+            Tmax = valores[6];
+            Smax = valores[7];
+            st_customer = valores[8];
+            Q = valores[9];
 
             lector.readLine();
             lector.readLine();
             lector.readLine();
 
-            coordenadas = new Pair[numeroTotalNodos];
-            mapa = new DigraphAM(numeroTotalNodos,velocidad);
-            for (int i = 0; i <= numeroClientes; i++) {
+            coordenadas = new Pair[n];
+            mapa = new DigraphAM(n);
+            for (int i = 0; i <= m; i++) {
                 linea = lector.readLine();
                 lineaPartida = linea.split(" ");
                 coordenadas[Integer.parseInt(lineaPartida[0])] = new Pair(Float.parseFloat(lineaPartida[2]), Float.parseFloat(lineaPartida[3]));
             }
-            tipoEstacion = new short[numeroEstacionesCarga];
-            for (int i = 0; i < numeroEstacionesCarga; i++) {
+            tipoEstacion = new short[u];
+            for (int i = 0; i < u; i++) {
                 linea = lector.readLine();
                 lineaPartida = linea.split(" ");
                 coordenadas[Integer.parseInt(lineaPartida[0])] = new Pair(Float.parseFloat(lineaPartida[2]), Float.parseFloat(lineaPartida[3]));
                 tipoEstacion[i] = Short.parseShort(lineaPartida[5]);
             }
 
-            for (int i = 0; i < numeroTotalNodos; i++) {
-                for (int j = 0; j < numeroTotalNodos; j++) {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
                     mapa.addArc(i, j, Math.sqrt(
                             Math.pow(coordenadas[i].first - coordenadas[j].first,
                                     2)
-                                    + Math.pow(coordenadas[i].second - coordenadas[j].second, 2)
-                            )
+                            + Math.pow(coordenadas[i].second - coordenadas[j].second, 2)
+                    )
                     );
                 }
             }
@@ -112,12 +97,12 @@ public class RuteoVehiculosElectricos {
 
     @Override
     public String toString() {
-        return "RuteoVehiculosElectricos{" + "r=" + tasaConsumoWatts + ", speed=" + velocidad + ", Tmax=" + tiempoMaxDeRuta + ", Smax=" + tiempoMaxCarga + ", st_customer=" + tiempoVisita + ", Q=" + capacidadBateria + ", tiempoSolucion=" + tiempoSolucion + '}';
+        return "RuteoVehiculosElectricos{" + "r=" + r + ", speed=" + speed + ", Tmax=" + Tmax + ", Smax=" + Smax + ", st_customer=" + st_customer + ", Q=" + Q + ", tiempoSolucion=" + tiempoSolucion + '}';
     }
 
     public void exportarPuntosCSV() {
         try {
-            PrintStream escribirCoordenadas = new PrintStream(new File("ArchivosGenerados\\Coordenadas.csv"));
+            PrintStream escribirCoordenadas = new PrintStream(new File("Coordenadas.csv"));
             escribirCoordenadas.println("X,Y");
             for (Pair<Float, Float> coordenada : coordenadas) {
                 escribirCoordenadas.println(coordenada.first + "," + coordenada.second);
@@ -132,7 +117,7 @@ public class RuteoVehiculosElectricos {
         try {
             int numRuta = 0;
             for (ArrayList<Integer> ruta : rutas) {
-                PrintStream escribirCoordenadas = new PrintStream(new File("ArchivosGenerados\\ruta" + numRuta + ".csv"));
+                PrintStream escribirCoordenadas = new PrintStream(new File("ruta" + numRuta + ".csv"));
                 escribirCoordenadas.println("X,Y");
                 for (Integer verticeActual : ruta) {
                     escribirCoordenadas.println(coordenadas[verticeActual].first + "," + coordenadas[verticeActual].second);
@@ -146,7 +131,84 @@ public class RuteoVehiculosElectricos {
     }
 
     public void solucionar() {
+        //Random ran = new Random(151190);
 
+        //Problem Parameters
+        int NoOfCustomers = m;
+        int NoOfVehicles = 1000;
+        double VehicleCap = Q;
+
+        //Depot Coordinates
+        float Depot_x = coordenadas[0].first;
+        float Depot_y = coordenadas[0].second;
+
+        //Tabu Parameter
+        int TABU_Horizon = 10;
+
+        //Initialise
+        //Create Random Customers
+        Node[] Nodes = new Node[n];
+
+        Nodes[0] = new Node(Depot_x, Depot_y);
+        for (int i = 1; i <= NoOfCustomers; i++) {
+            Nodes[i] = new Node(i, 
+                    coordenadas[i].first, 
+                    coordenadas[i].second
+            );
+        }
+        for (int i = NoOfCustomers + 1, j = 0; i < n ; i++, j++) {
+            Nodes[i] = new Node(i,
+                    coordenadas[i].first, 
+                    coordenadas[i].second,
+                    tipoEstacion[j],
+                    this.pendienteFuncionCarga
+                    
+            );
+        }    
+
+        double[][] distanceMatrix = new double[n][n];
+        double Delta_x, Delta_y;
+        for (int i = 0; i <= n-1; i++) {
+            for (int j = i + 1; j <= n-1; j++) //The table is summetric to the first diagonal
+            {                                      //Use this to compute distances in O(n/2)
+
+                Delta_x = (Nodes[i].Node_X - Nodes[j].Node_X);
+                Delta_y = (Nodes[i].Node_Y - Nodes[j].Node_Y);
+
+                double distance = Math.sqrt((Delta_x * Delta_x) + (Delta_y * Delta_y));
+                
+                distance = Math.round(distance*100.0)/100.0; //Distance in double
+
+                distanceMatrix[i][j] = distance;
+                distanceMatrix[j][i] = distance;
+            }
+        }
+        int printMatrix = 1; //If we want to print diastance matrix
+
+        if (printMatrix == 1){
+            for (int i = 0; i <= n-1; i++) {
+                for (int j = 0; j <= n-1; j++) {
+                    System.out.print(distanceMatrix[i][j] + "  ");
+                }
+                System.out.println();
+            }
+        }
+
+        //Compute the greedy Solution
+        System.out.println("Attempting to resolve Vehicle Routing Problem (VRP) for "+NoOfCustomers+
+                " Customers and "+u+" Stations"+" with "+VehicleCap + " Watts of capacity \n");
+
+        Solution s = new Solution(n-1, NoOfVehicles, VehicleCap);
+        s.GreedySolution(Nodes, distanceMatrix, r, speed, Tmax);
+        s.SolutionPrint("Solution After Greedy");
+
+        draw.drawRoutes(s, "GREEDY_Solution");
+
+        s.TabuSearch(TABU_Horizon, distanceMatrix);
+
+        s.SolutionPrint("Solution After Tabu Search");
+
+        draw.drawRoutes(s, "TABU_Solution");
     }
 
     /**
@@ -155,14 +217,14 @@ public class RuteoVehiculosElectricos {
      * y el segundo elemento el tiempo que se quedo en ese nodo
      * @return Verdadero si el tiempo de solucion expresado concuerda y si la bateria nunca esta por debajo de 0.
      */
-    public boolean comprobarSolucion( ArrayList<ArrayList<Pair<Integer, Integer>>> rutas){
+    public void comprobarSolucion( ArrayList<ArrayList<Integer>> rutas){
 
     }
-
+    
+   
 
     public static void main(String[] args) {
         RuteoVehiculosElectricos problema1 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\prueba.txt");
-        BestFirstSearch bfs = new BestFirstSearch(problema1.numeroTotalNodos);
         problema1.solucionar();
         problema1.exportarPuntosCSV();
     }
