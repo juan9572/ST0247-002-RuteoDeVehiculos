@@ -183,7 +183,7 @@ public class RuteoVehiculosElectricos {
                 distanceMatrix[j][i] = distance;
             }
         }
-        int printMatrix = 1; //If we want to print diastance matrix
+        int printMatrix = 0; //If we want to print diastance matrix
 
         if (printMatrix == 1){
             for (int i = 0; i <= n-1; i++) {
@@ -224,7 +224,7 @@ public class RuteoVehiculosElectricos {
    
 
     public static void main(String[] args) {
-        RuteoVehiculosElectricos problema1 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\prueba.txt");
+        RuteoVehiculosElectricos problema1 = new RuteoVehiculosElectricos("tc2c320s24cf0.txt");
         problema1.solucionar();
         problema1.exportarPuntosCSV();
     }

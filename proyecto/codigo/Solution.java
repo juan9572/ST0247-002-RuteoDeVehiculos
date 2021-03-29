@@ -66,16 +66,7 @@ public class Solution
                             CustIndex = i;
                             Candidate = Nodes[i];
                         }
-                    }else{
-                        int station = findStation(Nodes, pCostMatrix,Vehicles[VehIndex].CurLoc);
-                        if(Vehicles[VehIndex].CheckIfFits(Nodes[station].caldemand(Vehicles[VehIndex].CurLoc, pCostMatrix, r, speed).first)) {
-                            CandCost = CostMatrix[Vehicles[VehIndex].CurLoc][station];
-                            minCost = CandCost;
-                            tiempoRuta = Nodes[i].caldemand(Vehicles[VehIndex].CurLoc, pCostMatrix, r, speed).second;
-                            demand = Nodes[station].caldemand(Vehicles[VehIndex].CurLoc, pCostMatrix, r, speed).first;
-                            CustIndex = station;
-                            Candidate = Nodes[station];
-                        }
+                    }else {
                     }
                 }
             }
@@ -121,6 +112,9 @@ public class Solution
                     EndCost = CostMatrix[Vehicles[VehIndex].CurLoc][0];
                     Vehicles[VehIndex].AddNode(Nodes[0]);
                     this.Cost +=  EndCost;
+                    if ( VehIndex+1 < Vehicles.length ){
+                        VehIndex = VehIndex+1;
+                    }
                 }else{
                     Vehicles[VehIndex].AddNode(Candidate);//If a fitting Customer is Found
                     Vehicles[VehIndex].carga += demand;
