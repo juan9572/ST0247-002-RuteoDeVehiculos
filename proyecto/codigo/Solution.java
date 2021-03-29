@@ -66,7 +66,6 @@ public class Solution
                             CustIndex = i;
                             Candidate = Nodes[i];
                         }
-                    }else {
                     }
                 }
             }

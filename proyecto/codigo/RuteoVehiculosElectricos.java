@@ -169,8 +169,8 @@ public class RuteoVehiculosElectricos {
         double[][] distanceMatrix = new double[n][n];
         double Delta_x, Delta_y;
         for (int i = 0; i <= n-1; i++) {
-            for (int j = i + 1; j <= n-1; j++) //The table is summetric to the first diagonal
-            {                                      //Use this to compute distances in O(n/2)
+            for (int j = i + 1; j <= n-1; j++)//Use this to compute distances in O(n/2) 
+            {                                 
 
                 Delta_x = (Nodes[i].Node_X - Nodes[j].Node_X);
                 Delta_y = (Nodes[i].Node_Y - Nodes[j].Node_Y);
@@ -197,7 +197,7 @@ public class RuteoVehiculosElectricos {
         //Compute the greedy Solution
         System.out.println("Attempting to resolve Vehicle Routing Problem (VRP) for "+NoOfCustomers+
                 " Customers and "+u+" Stations"+" with "+VehicleCap + " Watts of capacity \n");
-
+        long inicio = System.currentTimeMillis();
         Solution s = new Solution(n-1, NoOfVehicles, VehicleCap);
         s.GreedySolution(Nodes, distanceMatrix, r, speed, Tmax);
         s.SolutionPrint("Solution After Greedy");
@@ -209,23 +209,16 @@ public class RuteoVehiculosElectricos {
         s.SolutionPrint("Solution After Tabu Search");
 
         draw.drawRoutes(s, "TABU_Solution");
+        long terminar = System.currentTimeMillis();
+        long total = terminar - inicio;
+        System.out.println(" tiempo: " + total + " milisegundos");
     }
-
-    /**
-     * Este metodo es un test para verificar que la solucion es correcta. 
-     * @param rutas Es un contenedor de rutas representadas por un arraylist de parejas donde el primer elemento indica el nodo
-     * y el segundo elemento el tiempo que se quedo en ese nodo
-     * @return Verdadero si el tiempo de solucion expresado concuerda y si la bateria nunca esta por debajo de 0.
-     */
-    public void comprobarSolucion( ArrayList<ArrayList<Integer>> rutas){
-
-    }
-    
-   
-
     public static void main(String[] args) {
         RuteoVehiculosElectricos problema1 = new RuteoVehiculosElectricos("tc2c320s24cf0.txt");
+        int dataSize = 1024 * 1024;
         problema1.solucionar();
+        Runtime runtime = Runtime.getRuntime();
+        System.out.println("Memoria usada: " + (runtime.totalMemory()/dataSize - runtime.freeMemory()/dataSize) + "MB");
         problema1.exportarPuntosCSV();
     }
 
