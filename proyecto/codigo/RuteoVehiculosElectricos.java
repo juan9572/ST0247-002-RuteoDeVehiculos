@@ -1,11 +1,15 @@
-/**
- *
- * @author ljpalaciom
- */
 import java.io.*;
-import java.util.ArrayList;
 
-
+/**
+ * Clase encargada de leer los datos y poner a funcionar el programa XD.
+ *
+ * @author Julian Gomez Benitez, Juan Pablo Rincon Usma
+ * @see Pair
+ * @see Digraph
+ * @see Solution
+ * @see Draw
+ * @version 1
+ */
 public class RuteoVehiculosElectricos {
     int n, m, u, breaks;
     double r, speed, Tmax, Smax, st_customer, Q;
@@ -17,6 +21,10 @@ public class RuteoVehiculosElectricos {
 
     double tiempoSolucion;
 
+    /**
+     * Método constructor donde se leerán los datos del archivo pasado por parámetro.
+     * @param filename nombre del archivo con los datos.
+     */
     public RuteoVehiculosElectricos(String filename) {
         this.filename = filename;
         BufferedReader lector;
@@ -95,68 +103,46 @@ public class RuteoVehiculosElectricos {
         }
     }
 
+    /**
+     * Método para ver los atributos.
+     * @return una cadena concatenada de los atributos.
+     */
     @Override
     public String toString() {
         return "RuteoVehiculosElectricos{" + "r=" + r + ", speed=" + speed + ", Tmax=" + Tmax + ", Smax=" + Smax + ", st_customer=" + st_customer + ", Q=" + Q + ", tiempoSolucion=" + tiempoSolucion + '}';
     }
 
-    public void exportarPuntosCSV() {
-        try {
-            PrintStream escribirCoordenadas = new PrintStream(new File("Coordenadas.csv"));
-            escribirCoordenadas.println("X,Y");
-            for (Pair<Float, Float> coordenada : coordenadas) {
-                escribirCoordenadas.println(coordenada.first + "," + coordenada.second);
-            }
-            escribirCoordenadas.close();
-        } catch (FileNotFoundException ex) {
-            System.out.println(ex);
-        }
-    }
 
-    public void exportarRutasCSV(ArrayList<ArrayList<Integer>> rutas) {
-        try {
-            int numRuta = 0;
-            for (ArrayList<Integer> ruta : rutas) {
-                PrintStream escribirCoordenadas = new PrintStream(new File("ruta" + numRuta + ".csv"));
-                escribirCoordenadas.println("X,Y");
-                for (Integer verticeActual : ruta) {
-                    escribirCoordenadas.println(coordenadas[verticeActual].first + "," + coordenadas[verticeActual].second);
-                }
-                escribirCoordenadas.close();
-                numRuta++;
-            }
-        } catch (FileNotFoundException ex) {
-            System.out.println(ex);
-        }
-    }
-
+    /**
+     * Método encargado de crear los datos necesarios y pasarlos a la clase que soluciona el problema.
+     */
     public void solucionar() {
-        //Random ran = new Random(151190);
 
-        //Problem Parameters
-        int NoOfCustomers = m;
-        int NoOfVehicles = 1000;
-        double VehicleCap = Q;
+        //Número clientes, vehículos y capacidad de la batería.
+        int numeroClientes = m;
+        int numeroVehiculos = 1000;
+        double capaVehiculo = Q;
 
-        //Depot Coordinates
+        //Cordenadas deposito.
         float Depot_x = coordenadas[0].first;
         float Depot_y = coordenadas[0].second;
 
-        //Tabu Parameter
+        //Parametro Tabu
         int TABU_Horizon = 10;
 
-        //Initialise
-        //Create Random Customers
+        //Inicializar
         Node[] Nodes = new Node[n];
-
+        // Agregando deposito
         Nodes[0] = new Node(Depot_x, Depot_y);
-        for (int i = 1; i <= NoOfCustomers; i++) {
+        // Agregando los clientes
+        for (int i = 1; i <= numeroClientes; i++) {
             Nodes[i] = new Node(i, 
                     coordenadas[i].first, 
                     coordenadas[i].second
             );
         }
-        for (int i = NoOfCustomers + 1, j = 0; i < n ; i++, j++) {
+        // Agregando las estaciones
+        for (int i = numeroClientes + 1, j = 0; i < n ; i++, j++) {
             Nodes[i] = new Node(i,
                     coordenadas[i].first, 
                     coordenadas[i].second,
@@ -164,62 +150,53 @@ public class RuteoVehiculosElectricos {
                     this.pendienteFuncionCarga
                     
             );
-        }    
+        }
 
+        // Matriz de distancia entre cada nodo
         double[][] distanceMatrix = new double[n][n];
         double Delta_x, Delta_y;
         for (int i = 0; i <= n-1; i++) {
-            for (int j = i + 1; j <= n-1; j++)//Use this to compute distances in O(n/2) 
-            {                                 
+            for (int j = i + 1; j <= n-1; j++)
+            {
 
                 Delta_x = (Nodes[i].Node_X - Nodes[j].Node_X);
                 Delta_y = (Nodes[i].Node_Y - Nodes[j].Node_Y);
 
+                // Distancia euclidiana
                 double distance = Math.sqrt((Delta_x * Delta_x) + (Delta_y * Delta_y));
                 
-                distance = Math.round(distance*100.0)/100.0; //Distance in double
+                distance = Math.round(distance*100.0)/100.0;
 
                 distanceMatrix[i][j] = distance;
                 distanceMatrix[j][i] = distance;
             }
         }
-        int printMatrix = 0; //If we want to print diastance matrix
 
-        if (printMatrix == 1){
-            for (int i = 0; i <= n-1; i++) {
-                for (int j = 0; j <= n-1; j++) {
-                    System.out.print(distanceMatrix[i][j] + "  ");
-                }
-                System.out.println();
-            }
-        }
 
-        //Compute the greedy Solution
-        System.out.println("Attempting to resolve Vehicle Routing Problem (VRP) for "+NoOfCustomers+
-                " Customers and "+u+" Stations"+" with "+VehicleCap + " Watts of capacity \n");
-        long inicio = System.currentTimeMillis();
-        Solution s = new Solution(n-1, NoOfVehicles, VehicleCap);
-        s.GreedySolution(Nodes, distanceMatrix, r, speed, Tmax);
-        s.SolutionPrint("Solution After Greedy");
+        System.out.println("Intentando resolver el problema de VRP para: "+numeroClientes+
+                " Clientes y "+u+" Estaciones"+" con "+capaVehiculo + " Watts de capacidad \n");
 
-        draw.drawRoutes(s, "GREEDY_Solution");
+        Solution s = new Solution(n-1, numeroVehiculos, capaVehiculo);
+        s.GreedySolucion(Nodes, distanceMatrix, r, speed, Tmax);// Solución  greedy
+        s.imprimirSolucion("Solución después de Greedy");
 
-        s.TabuSearch(TABU_Horizon, distanceMatrix);
+        Draw.drawRoutes(s, "GREEDY_Solución");
 
-        s.SolutionPrint("Solution After Tabu Search");
+        s.TabuSearch(TABU_Horizon, distanceMatrix); // Solución  Tabu search
 
-        draw.drawRoutes(s, "TABU_Solution");
-        long terminar = System.currentTimeMillis();
-        long total = terminar - inicio;
-        System.out.println(" tiempo: " + total + " milisegundos");
+        s.imprimirSolucion("Solución después de Tabu Search");
+
+        Draw.drawRoutes(s, "TABU_Solución");
     }
+
+
+    /**
+     * Método que ejecuta el programa.
+     * @param args
+     */
     public static void main(String[] args) {
-        RuteoVehiculosElectricos problema1 = new RuteoVehiculosElectricos("tc2c320s24cf0.txt");
-        int dataSize = 1024 * 1024;
+        RuteoVehiculosElectricos problema1 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\tc2c320s24cf0.txt");
         problema1.solucionar();
-        Runtime runtime = Runtime.getRuntime();
-        System.out.println("Memoria usada: " + (runtime.totalMemory()/dataSize - runtime.freeMemory()/dataSize) + "MB");
-        problema1.exportarPuntosCSV();
     }
 
 }

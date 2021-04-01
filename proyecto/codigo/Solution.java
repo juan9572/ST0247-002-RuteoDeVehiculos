@@ -1,36 +1,56 @@
 import java.util.ArrayList;
 import java.util.Random;
 import java.io.PrintWriter;
+
+/**
+ * Clase encargada de encontrar las rutas para los vehículos.
+ *
+ * @author Julian Gomez Benitez, Juan Pablo Rincon Usma
+ * @see Vehicle
+ * @see Node
+ * @version 1
+ */
 public class Solution
 {
-    int NoOfVehicles;
-    int NoOfCustomers;
-    Vehicle[] Vehicles;
-    double Cost;
+    int numeroVehiculos; // Número de vehículos.
+    int numeroClientes; // Número de clientes.
+    Vehicle[] Vehiculos; // Vehículos para la solución.
+    double Costo; // Costo total.
 
     //Tabu Variables
-    public Vehicle[] VehiclesForBestSolution;
-    double BestSolutionCost;
+    public Vehicle[] VehiculosParaLaMejorSolucion;
+    double MejorSolucionCosto; // La mejor solución del tabu.
 
-    public ArrayList<Double> PastSolutions;
+    public ArrayList<Double> SolucionPasada; // Las posibles soluciones que dio el tabu.
 
-    public Solution(int CustNum, int VechNum , double VechCap)
+    /**
+     * Método constructor encargado de inicializar los atributos del problema.
+     * @param ClienNum números de clientes.
+     * @param VechNum números de vehículos.
+     * @param VechCap capacidad de la batería del vehículo.
+     */
+    public Solution(int ClienNum, int VechNum , double VechCap)
     {
-        this.NoOfVehicles = VechNum;
-        this.NoOfCustomers = CustNum;
-        this.Cost = 0;
-        Vehicles = new Vehicle[NoOfVehicles];
-        VehiclesForBestSolution =  new Vehicle[NoOfVehicles];
-        PastSolutions = new ArrayList<>();
+        this.numeroVehiculos = VechNum;
+        this.numeroClientes = ClienNum;
+        this.Costo = 0;
+        Vehiculos = new Vehicle[numeroVehiculos];
+        VehiculosParaLaMejorSolucion =  new Vehicle[numeroVehiculos];
+        SolucionPasada = new ArrayList<>();
 
-        for (int i = 0 ; i < NoOfVehicles; i++)
+        for (int i = 0; i < numeroVehiculos; i++)
         {
-            Vehicles[i] = new Vehicle(i+1,VechCap);
-            VehiclesForBestSolution[i] = new Vehicle(i+1,VechCap);
+            Vehiculos[i] = new Vehicle(i+1,VechCap);
+            VehiculosParaLaMejorSolucion[i] = new Vehicle(i+1,VechCap);
         }
     }
 
-    public boolean UnassignedCustomerExists(Node[] Nodes)
+    /**
+     * Método encargado de comprobar que el nodo no ha sido visitado.
+     * @param Nodes nodos del mapa.
+     * @return verdadero si existe uno que no este visitado, falso si ya estan visitados.
+     */
+    public boolean hayAlgunNodoSinRutear(Node[] Nodes)
     {
         for (int i = 1; i < Nodes.length; i++)
         {
@@ -40,119 +60,123 @@ public class Solution
         return false;
     }
 
-    public void GreedySolution(Node[] Nodes , double[][] CostMatrix, double r, double speed, double Tmax) {
+    /**
+     * Método greedy encargado de encontrar el conjunto de rutas para los vehículos.
+     * @param Nodes nodos del mapa.
+     * @param CostMatrix matriz con los pesos de los nodos.
+     * @param r consumo de watts/hora * kilometro.
+     * @param speed velocidad de los vehículos.
+     * @param Tmax tiempo usado durante la ruta.
+     */
+    public void GreedySolucion(Node[] Nodes , double[][] CostMatrix, double r, double speed, double Tmax) {
 
-        double CandCost,EndCost,tiempoRuta = 0,demand = 0;
+        double CostoCandidato,CostoFinal,tiempoRuta = 0,demanda = 0;
         int VehIndex = 0;
-        while (UnassignedCustomerExists(Nodes)) {
+        while (hayAlgunNodoSinRutear(Nodes)) {
             int CustIndex = 0;
-            Node Candidate = null;
+            Node Candidato = null;
             double minCost = (float) Double.MAX_VALUE;
 
-            if (Vehicles[VehIndex].Route.isEmpty())
+            if (Vehiculos[VehIndex].Route.isEmpty())
             {
-                Vehicles[VehIndex].AddNode(Nodes[0]);
+                Vehiculos[VehIndex].AddNode(Nodes[0]); //Se acabo de iniciar una ruta por eso se pone el nodo deposito.
             }
-            double[][] pCostMatrix = CostMatrix;
+            double[][] auxCostMatrix = CostMatrix;
 
-            for (int i = 1; i <= NoOfCustomers; i++) {
+            for (int i = 1; i <= numeroClientes; i++) { // Empezamos en 1 porque 0 es el deposito
                 if (Nodes[i].IsRouted == false) {
-                    if (Vehicles[VehIndex].CheckIfFits(Nodes[i].caldemand(Vehicles[VehIndex].CurLoc, pCostMatrix, r, speed).first)) {
-                        CandCost = CostMatrix[Vehicles[VehIndex].CurLoc][i];
-                        if (minCost > CandCost) {
-                            minCost = CandCost;
-                            tiempoRuta = Nodes[i].caldemand(Vehicles[VehIndex].CurLoc, pCostMatrix, r, speed).second;
-                            demand = Nodes[i].caldemand(Vehicles[VehIndex].CurLoc, pCostMatrix, r, speed).first;
+                    if (Vehiculos[VehIndex].CheckIfFits(Nodes[i].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).first)) { // Se revisa si se puede ir al siguiente nodo con las condiciones actuales
+                        CostoCandidato = CostMatrix[Vehiculos[VehIndex].CurLoc][i];
+                        if (minCost > CostoCandidato) { // Si se encuentra una mejor solución.
+                            minCost = CostoCandidato;
+                            tiempoRuta = Nodes[i].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).second;
+                            demanda = Nodes[i].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).first;
                             CustIndex = i;
-                            Candidate = Nodes[i];
+                            Candidato = Nodes[i];
                         }
                     }
                 }
             }
 
-            if ( Candidate  == null)
+            if ( Candidato  == null)
             {
-                //Not a single Customer Fits
-                if ( VehIndex+1 < Vehicles.length ) //We have more vehicles to assign
+                //Si no hay un nodo al que se pueda ir
+                if ( VehIndex+1 < Vehiculos.length ) //y todavia hay más vehículos.
                 {
-                    if (Vehicles[VehIndex].CurLoc != 0) {//End this route
-                        EndCost = CostMatrix[Vehicles[VehIndex].CurLoc][0];
-                        Vehicles[VehIndex].AddNode(Nodes[0]);
-                        this.Cost +=  EndCost;
+                    if (Vehiculos[VehIndex].CurLoc != 0) {//Se termina la ruta de este vehículo.
+                        CostoFinal = CostMatrix[Vehiculos[VehIndex].CurLoc][0];
+                        Vehiculos[VehIndex].AddNode(Nodes[0]);
+                        this.Costo +=  CostoFinal;
                     }
-                    VehIndex = VehIndex+1; //Go to next Vehicle
+                    VehIndex = VehIndex+1; //Se mueve al siguiente vehículo.
                 }
-                else //We DO NOT have any more vehicle to assign. The problem is unsolved under these parameters
+                else //Si no hay más vehículos, es porque no se puede resolver el problema con estas condiciones.
                 {
-                    System.out.println("\nThe rest customers do not fit in any Vehicle\n" +
-                            "The problem cannot be resolved under these constrains");
+                    System.out.println("\nEl resto de clientes no encaja con un vehículo\n" +
+                            "No se puede resolver el problema con estas condiciones.");
                     System.exit(0);
                 }
             }
             else
             {
-                if(!Candidate.IsStation && !Candidate.IsDepot){
+                if(!Candidato.IsStation && !Candidato.IsDepot){ // Si el vehículo esta en donde un cliente.
                     tiempoRuta += 0.5;
                 }
-                if(Nodes[Vehicles[VehIndex].CurLoc].IsStation == true){
-                    if(Candidate.IsStation){
-                        double cantidadH = calcularHoras(demand,Nodes[CustIndex].tipo,Nodes[CustIndex].pendienteFuncionCarga);
-                        Vehicles[VehIndex].tiempoRuta += cantidadH;
-                        Vehicles[VehIndex].carga -= Nodes[CustIndex].calcularTiempoRecarga(cantidadH);
-                    }else{
-                        double cantidadH = calcularHoras(Vehicles[VehIndex].carga+demand,Nodes[Vehicles[VehIndex].CurLoc].tipo,Nodes[Vehicles[VehIndex].CurLoc].pendienteFuncionCarga);
-                        Vehicles[VehIndex].tiempoRuta += cantidadH;
-                        Vehicles[VehIndex].carga -= Nodes[Vehicles[VehIndex].CurLoc].calcularTiempoRecarga(cantidadH);
+                if(Nodes[Vehiculos[VehIndex].CurLoc].IsStation == true){ // Si el vehículo esta en una estación.
+                    if(Candidato.IsStation){ // Si el candidato a moverse es una estación entonces recargue lo minimo para llegar hasta ella.
+                        double cantidadH = calcularHoras(demanda,Nodes[CustIndex].tipo,Nodes[CustIndex].pendienteFuncionCarga);
+                        Vehiculos[VehIndex].tiempoRuta += cantidadH;
+                        Vehiculos[VehIndex].carga -= Nodes[CustIndex].calcularTiempoRecarga(cantidadH);
+                    }else{ // Si no recargue toda la batería.
+                        double cantidadH = calcularHoras(Vehiculos[VehIndex].carga+demanda,Nodes[Vehiculos[VehIndex].CurLoc].tipo,Nodes[Vehiculos[VehIndex].CurLoc].pendienteFuncionCarga);
+                        Vehiculos[VehIndex].tiempoRuta += cantidadH;
+                        Vehiculos[VehIndex].carga -= Nodes[Vehiculos[VehIndex].CurLoc].calcularTiempoRecarga(cantidadH);
                     }
                 }
-                if(Vehicles[VehIndex].tiempoRuta + tiempoRuta > Tmax){
-                    Vehicles[VehIndex].carga += Nodes[0].caldemand(Vehicles[VehIndex].CurLoc, pCostMatrix, r, speed).first;
-                    Vehicles[VehIndex].tiempoRuta += Nodes[0].caldemand(Vehicles[VehIndex].CurLoc, pCostMatrix, r, speed).second;
-                    EndCost = CostMatrix[Vehicles[VehIndex].CurLoc][0];
-                    Vehicles[VehIndex].AddNode(Nodes[0]);
-                    this.Cost +=  EndCost;
-                    if ( VehIndex+1 < Vehicles.length ){
-                        VehIndex = VehIndex+1;
+                if(Vehiculos[VehIndex].tiempoRuta + tiempoRuta > Tmax){ // Si el vehículo esta acercandose al limite de tiempo, entonces finalice la ruta.
+                    Vehiculos[VehIndex].carga += Nodes[0].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).first;
+                    Vehiculos[VehIndex].tiempoRuta += Nodes[0].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).second;
+                    CostoFinal = CostMatrix[Vehiculos[VehIndex].CurLoc][0];
+                    Vehiculos[VehIndex].AddNode(Nodes[0]);
+                    this.Costo +=  CostoFinal;
+                    if ( VehIndex+1 < Vehiculos.length ){ //Si todavia hay más vehículos.
+                        VehIndex = VehIndex+1; //Se mueve al siguiente vehículo.
                     }
-                }else{
-                    Vehicles[VehIndex].AddNode(Candidate);//If a fitting Customer is Found
-                    Vehicles[VehIndex].carga += demand;
-                    Vehicles[VehIndex].tiempoRuta += tiempoRuta;
+                }else{//Si hay un candidato.
+                    Vehiculos[VehIndex].AddNode(Candidato);
+                    Vehiculos[VehIndex].carga += demanda;
+                    Vehiculos[VehIndex].tiempoRuta += tiempoRuta;
                     Nodes[CustIndex].IsRouted = true;
-                    this.Cost += minCost;
+                    this.Costo += minCost;
                 }
             }
         }
-        EndCost = CostMatrix[Vehicles[VehIndex].CurLoc][0];
-        Vehicles[VehIndex].AddNode(Nodes[0]);
-        this.Cost +=  EndCost;
-        System.out.println(Vehicles[VehIndex].tiempoRuta);
+        // Se finaliza la ruta.
+        CostoFinal = CostMatrix[Vehiculos[VehIndex].CurLoc][0];
+        Vehiculos[VehIndex].AddNode(Nodes[0]);
+        this.Costo +=  CostoFinal;
     }
 
+    /**
+     * Método encargado de decirme las horas necesarias para cargar lo mínimo para llegar hasta el próximo nodo.
+     *
+     * @param carga la carga necesaria para llegar al siguiente nodo considerando la actual.
+     * @param tipoEstacion el tipo de estación de carga.
+     * @param pendienteCarga la pendiente de carga de la estación.
+     * @return devuelve las horas que necesita para cargar lo mínimo para moverse hacía el próximo nodo.
+     */
     public double calcularHoras(double carga, int tipoEstacion, float[] pendienteCarga) {
         return carga/pendienteCarga[tipoEstacion];
     }
 
-    public int findStation(Node[] nodes, double[][] CostMatrix, int CurLoc){
-        int index = 0;
-        double costoMin = Double.MAX_VALUE;
-        double distancia;
-        for(int i = 0; i < nodes.length; i++){
-            if(nodes[i].IsStation && CurLoc != i){
-                distancia = CostMatrix[CurLoc][i];
-                if(distancia < costoMin){
-                    costoMin = distancia;
-                    index = i;
-                }
-            }
-        }
-        return index;
-    }
-
-
+    /**
+     * Método encargado de optimizar la solución greedy, mediante el cambio de posición de los nodos de la solución greedy,
+     * en otras palabras se van a variar el orden de la solución con el fin de encotrar una más optima de tomar.
+     * @param TABU_Horizon Número que guía la solución.
+     * @param CostMatrix La matriz con los costos de los nodos del mapa.
+     */
     public void TabuSearch(int TABU_Horizon, double[][] CostMatrix) {
 
-        //We use 1-0 exchange move
         ArrayList<Node> RouteFrom;
         ArrayList<Node> RouteTo;
 
@@ -169,7 +193,7 @@ public class Solution
         int DimensionCustomer = CostMatrix[1].length;
         int TABU_Matrix[][] = new int[DimensionCustomer+1][DimensionCustomer+1];
 
-        BestSolutionCost = this.Cost; //Initial Solution Cost
+        MejorSolucionCosto = this.Costo; //Initial Solution Cost
 
         boolean Termination = false;
 
@@ -178,19 +202,19 @@ public class Solution
             iteration_number++;
             BestNCost = Double.MAX_VALUE;
 
-            for (VehIndexFrom = 0;  VehIndexFrom <  this.Vehicles.length;  VehIndexFrom++) {
-                RouteFrom =  this.Vehicles[VehIndexFrom].Route;
+            for (VehIndexFrom = 0; VehIndexFrom <  this.Vehiculos.length; VehIndexFrom++) {
+                RouteFrom =  this.Vehiculos[VehIndexFrom].Route;
                 int RoutFromLength = RouteFrom.size();
                 for (int i = 1; i < RoutFromLength - 1; i++) { //Not possible to move depot!
 
-                    for (VehIndexTo = 0; VehIndexTo <  this.Vehicles.length; VehIndexTo++) {
-                        RouteTo =   this.Vehicles[VehIndexTo].Route;
+                    for (VehIndexTo = 0; VehIndexTo <  this.Vehiculos.length; VehIndexTo++) {
+                        RouteTo =   this.Vehiculos[VehIndexTo].Route;
                         int RouteTolength = RouteTo.size();
                         for (int j = 0; (j < RouteTolength - 1); j++) {//Not possible to move after last Depot!
 
                             MovingNodeDemand = RouteFrom.get(i).demand;
 
-                            if ((VehIndexFrom == VehIndexTo) ||  this.Vehicles[VehIndexTo].CheckIfFits(MovingNodeDemand)) {
+                            if ((VehIndexFrom == VehIndexTo) ||  this.Vehiculos[VehIndexTo].CheckIfFits(MovingNodeDemand)) {
                                 //If we assign to a different route check capacity constrains
                                 //if in the new route is the same no need to check for capacity
 
@@ -235,10 +259,10 @@ public class Solution
                 }
             }
 
-            RouteFrom =  this.Vehicles[SwapRouteFrom].Route;
-            RouteTo =  this.Vehicles[SwapRouteTo].Route;
-            this.Vehicles[SwapRouteFrom].Route = null;
-            this.Vehicles[SwapRouteTo].Route = null;
+            RouteFrom =  this.Vehiculos[SwapRouteFrom].Route;
+            RouteTo =  this.Vehiculos[SwapRouteTo].Route;
+            this.Vehiculos[SwapRouteFrom].Route = null;
+            this.Vehiculos[SwapRouteTo].Route = null;
 
             Node SwapNode = RouteFrom.get(SwapIndexA);
 
@@ -271,19 +295,19 @@ public class Solution
             }
 
 
-            this.Vehicles[SwapRouteFrom].Route = RouteFrom;
-            this.Vehicles[SwapRouteFrom].carga -= MovingNodeDemand;
+            this.Vehiculos[SwapRouteFrom].Route = RouteFrom;
+            this.Vehiculos[SwapRouteFrom].carga -= MovingNodeDemand;
 
-            this.Vehicles[SwapRouteTo].Route = RouteTo;
-            this.Vehicles[SwapRouteTo].carga += MovingNodeDemand;
+            this.Vehiculos[SwapRouteTo].Route = RouteTo;
+            this.Vehiculos[SwapRouteTo].carga += MovingNodeDemand;
 
-            PastSolutions.add(this.Cost);
+            SolucionPasada.add(this.Costo);
 
-            this.Cost  += BestNCost;
+            this.Costo += BestNCost;
 
-            if (this.Cost <   BestSolutionCost)
+            if (this.Costo < MejorSolucionCosto)
             {
-                SaveBestSolution();
+                guardarMejorSolucion();
             }
 
             if (iteration_number == MAX_ITERATIONS)
@@ -292,55 +316,62 @@ public class Solution
             }
         }
 
-        this.Vehicles = VehiclesForBestSolution;
-        this.Cost = BestSolutionCost;
+        this.Vehiculos = VehiculosParaLaMejorSolucion;
+        this.Costo = MejorSolucionCosto;
 
         try{
-            PrintWriter writer = new PrintWriter("PastSolutionsTabu.txt", "UTF-8");
-            writer.println("Solutions"+"\t");
-            for  (int i = 0; i< PastSolutions.size(); i++){
-                writer.println(PastSolutions.get(i)+"\t");
+            PrintWriter writer = new PrintWriter("SolucionesPasadasTabu.txt", "UTF-8");
+            writer.println("Soluciones"+"\t");
+            for  (int i = 0; i< SolucionPasada.size(); i++){
+                writer.println(SolucionPasada.get(i)+"\t");
             }
             writer.close();
         } catch (Exception e) {}
     }
 
-    public void SaveBestSolution()
+    /**
+     *
+     */
+    public void guardarMejorSolucion()
     {
-        BestSolutionCost = Cost;
-        for (int j=0 ; j < NoOfVehicles ; j++)
+        MejorSolucionCosto = Costo;
+        for (int j = 0; j < numeroVehiculos; j++)
         {
-            VehiclesForBestSolution[j].Route.clear();
-            if (! Vehicles[j].Route.isEmpty())
+            VehiculosParaLaMejorSolucion[j].Route.clear();
+            if (! Vehiculos[j].Route.isEmpty())
             {
-                int RoutSize = Vehicles[j].Route.size();
-                for (int k = 0; k < RoutSize ; k++) {
-                    Node n = Vehicles[j].Route.get(k);
-                    VehiclesForBestSolution[j].Route.add(n);
+                int longitudRuta = Vehiculos[j].Route.size();
+                for (int k = 0; k < longitudRuta ; k++) {
+                    Node n = Vehiculos[j].Route.get(k);
+                    VehiculosParaLaMejorSolucion[j].Route.add(n);
                 }
             }
         }
     }
 
-    public void SolutionPrint(String Solution_Label)//Print Solution In console
+    /**
+     * Imprimir la solución dada por la consola.
+     * @param nombre nombre de la solución.
+     */
+    public void imprimirSolucion(String nombre)
     {
         System.out.println("=========================================================");
-        System.out.println(Solution_Label+"\n");
+        System.out.println(nombre+"\n");
 
-        for (int j=0 ; j < NoOfVehicles ; j++)
+        for (int j = 0; j < numeroVehiculos; j++)
         {
-            if (!Vehicles[j].Route.isEmpty())
-            {   System.out.print("Vehicle " + j + ":");
-                int RoutSize = Vehicles[j].Route.size();
-                for (int k = 0; k < RoutSize ; k++) {
-                    if (k == RoutSize-1)
-                    { System.out.print(Vehicles[j].Route.get(k).NodeId );  }
+            if (!Vehiculos[j].Route.isEmpty())
+            {   System.out.print("Vehículo " + j + ":");
+                int longitudRuta = Vehiculos[j].Route.size();
+                for (int k = 0; k < longitudRuta ; k++) {
+                    if (k == longitudRuta-1)
+                    { System.out.print(Vehiculos[j].Route.get(k).NodeId );  }
                     else
-                    { System.out.print(Vehicles[j].Route.get(k).NodeId+ "->"); }
+                    { System.out.print(Vehiculos[j].Route.get(k).NodeId+ "->"); }
                 }
                 System.out.println();
             }
         }
-        System.out.println("\nSolution Cost "+this.Cost+"\n");
+        System.out.println("\nCosto solución: "+this.Costo +"\n");
     }
 }
