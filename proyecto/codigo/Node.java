@@ -28,6 +28,7 @@ public class Node
         this.Node_Y = depot_y;
         this.IsDepot = true;
         this.IsStation = false;
+        this.IsRouted = true;
     }
 
     /**
@@ -80,7 +81,7 @@ public class Node
         double distancia = distanceMatrix[currPos][NodeId];
         double tiempo = distancia/speed;
         double consumo = r * distancia;
-        this.demand = consumo;
+        //this.demand = consumo;
         return new Pair<Double, Double>(consumo,tiempo);
     }
 

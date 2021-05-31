@@ -16,6 +16,8 @@ public class Solution
     int numeroClientes; // Número de clientes.
     Vehicle[] Vehiculos; // Vehículos para la solución.
     double Costo; // Costo total.
+    final double constanteDeCarga = 0.51; //Constatne del promedio del tiempo de una carga aproximada de 9600 que equivale al 60% de la bateria, para cada cada tipo de estación.
+    int vehiculosUsados = 0;
 
     //Tabu Variables
     public Vehicle[] VehiculosParaLaMejorSolucion;
@@ -67,8 +69,9 @@ public class Solution
      * @param r consumo de watts/hora * kilometro.
      * @param speed velocidad de los vehículos.
      * @param Tmax tiempo usado durante la ruta.
+     * @return El tiempo total de horas gastado por los vehículos.
      */
-    public void GreedySolucion(Node[] Nodes , double[][] CostMatrix, double r, double speed, double Tmax) {
+    public double GreedySolucion(Node[] Nodes , double[][] CostMatrix, double r, double speed, double Tmax) {
 
         double CostoCandidato,CostoFinal,tiempoRuta = 0,demanda = 0;
         int VehIndex = 0;
@@ -83,7 +86,7 @@ public class Solution
             }
             double[][] auxCostMatrix = CostMatrix;
 
-            for (int i = 1; i <= numeroClientes; i++) { // Empezamos en 1 porque 0 es el deposito
+            for (int i = 1; i <= numeroClientes; i++){ // Empezamos en 1 porque 0 es el deposito
                 if (Nodes[i].IsRouted == false) {
                     if (Vehiculos[VehIndex].CheckIfFits(Nodes[i].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).first)) { // Se revisa si se puede ir al siguiente nodo con las condiciones actuales
                         CostoCandidato = CostMatrix[Vehiculos[VehIndex].CurLoc][i];
@@ -93,6 +96,30 @@ public class Solution
                             demanda = Nodes[i].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).first;
                             CustIndex = i;
                             Candidato = Nodes[i];
+                        }
+                    }else{
+                        int estacionCercanaAlCandidato = econtrarEstacionDeCarga(auxCostMatrix,Nodes,i);
+                        if(Vehiculos[VehIndex].CheckIfFits(Nodes[estacionCercanaAlCandidato].caldemand(Vehiculos[VehIndex].CurLoc,auxCostMatrix, r, speed).first)){ //Se busca una estación de carga cercana al nodo que se debe ir.
+                            CostoCandidato = CostMatrix[Vehiculos[VehIndex].CurLoc][estacionCercanaAlCandidato];
+                            if (minCost > CostoCandidato) { // Si se encuentra una mejor solución.
+                                minCost = CostoCandidato;
+                                tiempoRuta = Nodes[estacionCercanaAlCandidato].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).second;
+                                demanda = Nodes[estacionCercanaAlCandidato].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).first;
+                                CustIndex = estacionCercanaAlCandidato;
+                                Candidato = Nodes[estacionCercanaAlCandidato];
+                            }
+                        }else{
+                            int estacionCercanaAlAnterior = econtrarEstacionDeCarga(auxCostMatrix,Nodes,estacionCercanaAlCandidato);
+                            if(Vehiculos[VehIndex].CheckIfFits(Nodes[estacionCercanaAlAnterior].caldemand(Vehiculos[VehIndex].CurLoc,auxCostMatrix, r, speed).first)){ //Se busca una estación de carga cercana al nodo que se debe ir.
+                                CostoCandidato = CostMatrix[Vehiculos[VehIndex].CurLoc][estacionCercanaAlAnterior];
+                                if (minCost > CostoCandidato) { // Si se encuentra una mejor solución.
+                                    minCost = CostoCandidato;
+                                    tiempoRuta = Nodes[estacionCercanaAlAnterior].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).second;
+                                    demanda = Nodes[estacionCercanaAlAnterior].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).first;
+                                    CustIndex = estacionCercanaAlAnterior;
+                                    Candidato = Nodes[estacionCercanaAlAnterior];
+                                }
+                            }
                         }
                     }
                 }
@@ -119,21 +146,10 @@ public class Solution
             }
             else
             {
-                if(!Candidato.IsStation && !Candidato.IsDepot){ // Si el vehículo esta en donde un cliente.
-                    tiempoRuta += 0.5;
+                if(!Nodes[Vehiculos[VehIndex].CurLoc].IsStation && !Nodes[Vehiculos[VehIndex].CurLoc].IsDepot){ // Si el vehículo esta en donde un cliente.
+                Vehiculos[VehIndex].tiempoRuta += 0.5;
                 }
-                if(Nodes[Vehiculos[VehIndex].CurLoc].IsStation == true){ // Si el vehículo esta en una estación.
-                    if(Candidato.IsStation){ // Si el candidato a moverse es una estación entonces recargue lo minimo para llegar hasta ella.
-                        double cantidadH = calcularHoras(demanda,Nodes[CustIndex].tipo,Nodes[CustIndex].pendienteFuncionCarga);
-                        Vehiculos[VehIndex].tiempoRuta += cantidadH;
-                        Vehiculos[VehIndex].carga -= Nodes[CustIndex].calcularTiempoRecarga(cantidadH);
-                    }else{ // Si no recargue toda la batería.
-                        double cantidadH = calcularHoras(Vehiculos[VehIndex].carga+demanda,Nodes[Vehiculos[VehIndex].CurLoc].tipo,Nodes[Vehiculos[VehIndex].CurLoc].pendienteFuncionCarga);
-                        Vehiculos[VehIndex].tiempoRuta += cantidadH;
-                        Vehiculos[VehIndex].carga -= Nodes[Vehiculos[VehIndex].CurLoc].calcularTiempoRecarga(cantidadH);
-                    }
-                }
-                if(Vehiculos[VehIndex].tiempoRuta + tiempoRuta > Tmax){ // Si el vehículo esta acercandose al limite de tiempo, entonces finalice la ruta.
+                if(Vehiculos[VehIndex].tiempoRuta + tiempoRuta + Candidato.caldemand(0,auxCostMatrix,r,speed).second + constanteDeCarga >= Tmax){ // Si el vehículo viola el limite del tiempo, entonces finalice la ruta.
                     Vehiculos[VehIndex].carga += Nodes[0].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).first;
                     Vehiculos[VehIndex].tiempoRuta += Nodes[0].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).second;
                     CostoFinal = CostMatrix[Vehiculos[VehIndex].CurLoc][0];
@@ -142,12 +158,54 @@ public class Solution
                     if ( VehIndex+1 < Vehiculos.length ){ //Si todavia hay más vehículos.
                         VehIndex = VehIndex+1; //Se mueve al siguiente vehículo.
                     }
-                }else{//Si hay un candidato.
-                    Vehiculos[VehIndex].AddNode(Candidato);
-                    Vehiculos[VehIndex].carga += demanda;
-                    Vehiculos[VehIndex].tiempoRuta += tiempoRuta;
-                    Nodes[CustIndex].IsRouted = true;
-                    this.Costo += minCost;
+                }else{//Si no hay un candidato que no viola la primera restricción.
+                    if(Vehiculos[VehIndex].carga + demanda < Vehiculos[VehIndex].capacity){ // Si no se viola la restricción de la carga, entonces es un candidato válido.
+                        Vehiculos[VehIndex].carga += demanda;
+                        Vehiculos[VehIndex].AddNode(Candidato);
+                        Vehiculos[VehIndex].tiempoRuta += tiempoRuta;
+                        if(Nodes[Vehiculos[VehIndex].CurLoc].IsStation == true){ // Si el vehículo esta en una estación.
+                                // Si no recargue todo lo que falte en la batería.
+                                double cantidadH = calcularHoras(Vehiculos[VehIndex].carga,Nodes[Vehiculos[VehIndex].CurLoc].tipo,Nodes[Vehiculos[VehIndex].CurLoc].pendienteFuncionCarga);
+                                Vehiculos[VehIndex].tiempoRuta += cantidadH;
+                                Vehiculos[VehIndex].carga -= Nodes[Vehiculos[VehIndex].CurLoc].calcularTiempoRecarga(cantidadH);
+                        }
+                        Nodes[CustIndex].IsRouted = true;
+                        this.Costo += minCost;
+                    }else{// Si no se viola la restricción de la carga de la bateria.
+                        int id = econtrarEstacionDeCarga(auxCostMatrix,Nodes,Vehiculos[VehIndex].CurLoc);
+                        if(Nodes[id].caldemand(Vehiculos[VehIndex].CurLoc,auxCostMatrix,r,speed).second + Vehiculos[VehIndex].tiempoRuta + Nodes[id].caldemand(0,auxCostMatrix,r,speed).second < Tmax){ //Si puedo ir hasta la estación de carga sin pasarme del tiempo.
+                            if(Vehiculos[VehIndex].CheckIfFits(Nodes[id].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).first)){ // Si puedo ir hasta la estación de carga sin violar la restricción de la bateria.
+                                demanda = Nodes[id].caldemand(Vehiculos[VehIndex].CurLoc,auxCostMatrix,r,speed).first;
+                                tiempoRuta = Nodes[id].caldemand(Vehiculos[VehIndex].CurLoc,auxCostMatrix,r,speed).second;
+                                Vehiculos[VehIndex].carga += demanda;
+                                Vehiculos[VehIndex].tiempoRuta += tiempoRuta;
+                                Nodes[id].IsRouted = true;
+                                this.Costo += minCost;
+                                double cantidadH = calcularHoras((Vehiculos[VehIndex].carga),Nodes[id].tipo,Nodes[id].pendienteFuncionCarga);
+                                Vehiculos[VehIndex].tiempoRuta += cantidadH;
+                                Vehiculos[VehIndex].carga -= Nodes[id].calcularTiempoRecarga(cantidadH);
+                                Vehiculos[VehIndex].AddNode(Nodes[id]);
+                            }else{ // Si no significa que deberia volver al deposito porque no puede moverse a una estación a cargar.
+                                Vehiculos[VehIndex].carga += Nodes[0].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).first;
+                                Vehiculos[VehIndex].tiempoRuta += Nodes[0].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).second;
+                                CostoFinal = CostMatrix[Vehiculos[VehIndex].CurLoc][0];
+                                Vehiculos[VehIndex].AddNode(Nodes[0]);
+                                this.Costo +=  CostoFinal;
+                                if ( VehIndex+1 < Vehiculos.length ){ //Si todavia hay más vehículos.
+                                    VehIndex = VehIndex+1; //Se mueve al siguiente vehículo.
+                                }
+                            }
+                        }else{ // Si no significa que se esta violando la condción del tiempo, entonces deberia devolverse al deposito.
+                            Vehiculos[VehIndex].carga += Nodes[0].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).first;
+                            Vehiculos[VehIndex].tiempoRuta += Nodes[0].caldemand(Vehiculos[VehIndex].CurLoc, auxCostMatrix, r, speed).second;
+                            CostoFinal = CostMatrix[Vehiculos[VehIndex].CurLoc][0];
+                            Vehiculos[VehIndex].AddNode(Nodes[0]);
+                            this.Costo +=  CostoFinal;
+                            if ( VehIndex+1 < Vehiculos.length ){ //Si todavia hay más vehículos.
+                                VehIndex = VehIndex+1; //Se mueve al siguiente vehículo.
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -155,6 +213,32 @@ public class Solution
         CostoFinal = CostMatrix[Vehiculos[VehIndex].CurLoc][0];
         Vehiculos[VehIndex].AddNode(Nodes[0]);
         this.Costo +=  CostoFinal;
+        double tiempoFinal = 0;
+        for (Vehicle a:Vehiculos) {
+            tiempoFinal += a.tiempoRuta;
+        }
+        return tiempoFinal;
+    }
+
+    /**
+     * Encuentra la estación más cercana al nodo que se especifica.
+     * @param auxCostMatrix Se le pasa la matriz de los costos de los nodos.
+     * @param Nodes Se le pasa los nodos.
+     * @param PosActual Se le pasa la posición actual o desde donde se va a buscar la estación.
+     * @return el nodo de la estación de carga más cercana a la PosActual.
+     */
+    public int econtrarEstacionDeCarga(double[][] auxCostMatrix, Node[] Nodes, int PosActual){
+        int mejorEstacion = -1;
+        double mejorDistancia = Double.MAX_VALUE;
+        for (int i = 0; i < Nodes.length; i++) {
+            if(Nodes[i].IsStation && i != PosActual){
+                if(auxCostMatrix[PosActual][i] < mejorDistancia){
+                    mejorEstacion = Nodes[i].NodeId;
+                    mejorDistancia = auxCostMatrix[PosActual][i];
+                }
+            }
+        }
+        return mejorEstacion;
     }
 
     /**
@@ -187,7 +271,7 @@ public class Solution
 
         int SwapIndexA = -1, SwapIndexB = -1, SwapRouteFrom =-1, SwapRouteTo=-1;
 
-        int MAX_ITERATIONS = 200;
+        int MAX_ITERATIONS = 800;
         int iteration_number= 0;
 
         int DimensionCustomer = CostMatrix[1].length;
@@ -329,9 +413,6 @@ public class Solution
         } catch (Exception e) {}
     }
 
-    /**
-     *
-     */
     public void guardarMejorSolucion()
     {
         MejorSolucionCosto = Costo;
@@ -362,6 +443,7 @@ public class Solution
         {
             if (!Vehiculos[j].Route.isEmpty())
             {   System.out.print("Vehículo " + j + ":");
+                vehiculosUsados++;
                 int longitudRuta = Vehiculos[j].Route.size();
                 for (int k = 0; k < longitudRuta ; k++) {
                     if (k == longitudRuta-1)
@@ -372,6 +454,5 @@ public class Solution
                 System.out.println();
             }
         }
-        System.out.println("\nCosto solución: "+this.Costo +"\n");
     }
 }

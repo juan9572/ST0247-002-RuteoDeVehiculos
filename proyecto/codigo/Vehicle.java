@@ -5,6 +5,7 @@ import java.util.ArrayList;
  *
  * @author Julian Gomez Benitez, Juan Pablo Rincon Usma
  * @version 1
+ * @see Node
  */
 public class Vehicle
 {

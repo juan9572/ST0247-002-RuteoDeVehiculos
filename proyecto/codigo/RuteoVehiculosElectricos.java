@@ -18,6 +18,8 @@ public class RuteoVehiculosElectricos {
     float pendienteFuncionCarga[];
     String filename;
     static Pair<Float, Float>[] coordenadas;
+    double HorasSolucion;
+    int vehiculosUsados = 0;
 
     double tiempoSolucion;
 
@@ -120,7 +122,7 @@ public class RuteoVehiculosElectricos {
 
         //Número clientes, vehículos y capacidad de la batería.
         int numeroClientes = m;
-        int numeroVehiculos = 1000;
+        int numeroVehiculos = 50;
         double capaVehiculo = Q;
 
         //Cordenadas deposito.
@@ -128,7 +130,7 @@ public class RuteoVehiculosElectricos {
         float Depot_y = coordenadas[0].second;
 
         //Parametro Tabu
-        int TABU_Horizon = 10;
+        int TABU_Horizon = 200;
 
         //Inicializar
         Node[] Nodes = new Node[n];
@@ -177,15 +179,15 @@ public class RuteoVehiculosElectricos {
                 " Clientes y "+u+" Estaciones"+" con "+capaVehiculo + " Watts de capacidad \n");
 
         Solution s = new Solution(n-1, numeroVehiculos, capaVehiculo);
-        s.GreedySolucion(Nodes, distanceMatrix, r, speed, Tmax);// Solución  greedy
-        s.imprimirSolucion("Solución después de Greedy");
 
+        HorasSolucion = s.GreedySolucion(Nodes, distanceMatrix, r, speed, Tmax);// Solución  greedy
+
+        s.imprimirSolucion("Solución después de Greedy");
+        vehiculosUsados = s.vehiculosUsados;
         Draw.drawRoutes(s, "GREEDY_Solución");
 
         s.TabuSearch(TABU_Horizon, distanceMatrix); // Solución  Tabu search
-
         s.imprimirSolucion("Solución después de Tabu Search");
-
         Draw.drawRoutes(s, "TABU_Solución");
     }
 
@@ -195,8 +197,47 @@ public class RuteoVehiculosElectricos {
      * @param args
      */
     public static void main(String[] args) {
+        RuteoVehiculosElectricos problema0 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\dummy.txt");
+        problema0.solucionar();
         RuteoVehiculosElectricos problema1 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\tc2c320s24cf0.txt");
         problema1.solucionar();
+        RuteoVehiculosElectricos problema2 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\tc2c320s24cf1.txt");
+        problema2.solucionar();
+        RuteoVehiculosElectricos problema3 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\tc2c320s24cf4.txt");
+        problema3.solucionar();
+        RuteoVehiculosElectricos problema4 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\tc2c320s24ct0.txt");
+        problema4.solucionar();
+        RuteoVehiculosElectricos problema5 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\tc2c320s24ct1.txt");
+        problema5.solucionar();
+        RuteoVehiculosElectricos problema6 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\tc2c320s24ct4.txt");
+        problema6.solucionar();
+        RuteoVehiculosElectricos problema7 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\tc2c320s38cf0.txt");
+        problema7.solucionar();
+        RuteoVehiculosElectricos problema8 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\tc2c320s38cf1.txt");
+        problema8.solucionar();
+        RuteoVehiculosElectricos problema9 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\tc2c320s38cf4.txt");
+        problema9.solucionar();
+        RuteoVehiculosElectricos problema10 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\tc2c320s38ct0.txt");
+        problema10.solucionar();
+        RuteoVehiculosElectricos problema11 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\tc2c320s38ct1.txt");
+        problema11.solucionar();
+        RuteoVehiculosElectricos problema12 = new RuteoVehiculosElectricos("D:\\Desktop\\Universidad\\Tercer Semestre\\Estructura Datos y Algoritos 2\\Proyecto\\src\\tc2c320s38ct4.txt");
+        problema12.solucionar();
+        System.out.println("DataSet: dummy.txt, "+"número de nodos: "+problema0.n+" ,horas: "+problema0.HorasSolucion+" ,Vehiculos usados: "+problema0.vehiculosUsados);
+        System.out.println("DataSet: tc2c320s24cf0.txt, "+"número de nodos: "+problema1.n+" ,horas: "+problema1.HorasSolucion+" ,Vehiculos usados: "+problema1.vehiculosUsados);
+        System.out.println("DataSet: tc2c320s24cf1.txt, "+"número de nodos: "+problema2.n+" ,horas: "+problema2.HorasSolucion+" ,Vehiculos usados: "+problema2.vehiculosUsados);
+        System.out.println("DataSet: tc2c320s24cf4.txt, "+"número de nodos: "+problema3.n+" ,horas: "+problema3.HorasSolucion+" ,Vehiculos usados: "+problema3.vehiculosUsados);
+        System.out.println("DataSet: tc2c320s24ct0.txt, "+"número de nodos: "+problema4.n+" ,horas: "+problema4.HorasSolucion+" ,Vehiculos usados: "+problema4.vehiculosUsados);
+        System.out.println("DataSet: tc2c320s24ct1.txt, "+"número de nodos: "+problema5.n+" ,horas: "+problema5.HorasSolucion+" ,Vehiculos usados: "+problema5.vehiculosUsados);
+        System.out.println("DataSet: tc2c320s24ct4.txt, "+"número de nodos: "+problema6.n+" ,horas: "+problema6.HorasSolucion+" ,Vehiculos usados: "+problema6.vehiculosUsados);
+        System.out.println("DataSet: tc2c320s38cf0.txt, "+"número de nodos: "+problema7.n+" ,horas: "+problema7.HorasSolucion+" ,Vehiculos usados: "+problema7.vehiculosUsados);
+        System.out.println("DataSet: tc2c320s38cf1.txt, "+"número de nodos: "+problema8.n+" ,horas: "+problema8.HorasSolucion+" ,Vehiculos usados: "+problema8.vehiculosUsados);
+        System.out.println("DataSet: tc2c320s38cf4.txt, "+"número de nodos: "+problema9.n+" ,horas: "+" ,Vehiculos usados: "+problema9.vehiculosUsados);
+        System.out.println("DataSet: tc2c320s38ct0.txt, "+"número de nodos: "+problema10.n+" ,horas: "+problema10.HorasSolucion+" ,Vehiculos usados: "+problema10.vehiculosUsados);
+        System.out.println("DataSet: tc2c320s38ct1.txt, "+"número de nodos: "+problema11.n+" ,horas: "+problema11.HorasSolucion+" ,Vehiculos usados: "+problema11.vehiculosUsados);
+        System.out.println("DataSet: tc2c320s38ct4.txt, "+"número de nodos: "+problema12.n+" ,horas: "+problema12.HorasSolucion+" ,Vehiculos usados: "+problema12.vehiculosUsados);
+        double horas = problema0.HorasSolucion+problema1.HorasSolucion+problema2.HorasSolucion+problema3.HorasSolucion+problema4.HorasSolucion+problema5.HorasSolucion+problema6.HorasSolucion+problema7.HorasSolucion+problema8.HorasSolucion+problema9.HorasSolucion+problema10.HorasSolucion+problema11.HorasSolucion+problema12.HorasSolucion;
+        System.out.println("Suma de datasets, horas: "+horas);
     }
 
 }

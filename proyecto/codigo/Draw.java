@@ -20,11 +20,11 @@ public class Draw
      */
     public static void  drawRoutes(Solution s, String fileName) {
 
-        int VRP_Y = 800;
-        int VRP_INFO = 200;
-        int X_GAP = 600;
-        int margin = 30;
-        int marginNode = 1;
+        int VRP_Y = 1440;
+        int VRP_INFO = 560;
+        int X_GAP = 2000;
+        int margin = 20;
+        int marginNode;
 
 
         int XXX = VRP_INFO + X_GAP;
@@ -33,7 +33,8 @@ public class Draw
 
         BufferedImage output = new BufferedImage(XXX, YYY, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = output.createGraphics();
-        g.setColor(Color.WHITE);
+        Color colorFondo = new Color(231, 231, 208);
+        g.setColor(colorFondo);
         g.fillRect(0, 0, XXX, YYY);
         g.setColor(Color.BLACK);
 
@@ -52,7 +53,6 @@ public class Draw
                 if (n.Node_X < minX) minX = n.Node_X;
                 if (n.Node_Y > maxY) maxY = n.Node_Y;
                 if (n.Node_Y < minY) minY = n.Node_Y;
-
             }
         }
 
@@ -95,7 +95,8 @@ public class Draw
                 int ii2 = (int) ((double) (A) * ((n.Node_X - minX) / (maxX - minX) - 0.5) + (double) mX / 2) + margin;
                 int jj2 = (int) ((double) (B) * (0.5 - (n.Node_Y - minY) / (maxY - minY)) + (double) mY / 2) + margin;
 
-
+                g.setStroke(new BasicStroke(3.5F));
+                g.setColor(new Color(75,242,212));
                 g.drawLine(ii1, jj1, ii2, jj2);
             }
         }
@@ -103,27 +104,48 @@ public class Draw
         for (int i = 0; i < s.Vehiculos.length ; i++)
         {
             for (int j = 0; j < s.Vehiculos[i].Route.size() ; j++) {
-
+                marginNode = 2;
                 Node n = s.Vehiculos[i].Route.get(j);
 
                 int ii = (int) ((double) (A) * ((n.Node_X  - minX) / (maxX - minX) - 0.5) + (double) mX / 2) + margin;
                 int jj = (int) ((double) (B) * (0.5 - (n.Node_Y - minY) / (maxY - minY)) + (double) mY / 2) + margin;
-                if (i != 0) {
+                if(n.IsDepot){
+                    marginNode = 5;
+                    Color color = new Color(242,191,128);
+                    g.setColor(color);
                     g.fillOval(ii - 3 * marginNode, jj - 3 * marginNode, 6 * marginNode, 6 * marginNode); //2244
                     String id = Integer.toString(n.NodeId);
-                    g.drawString(id, ii + 6 * marginNode, jj + 6 * marginNode); //88
-                } else {
-                    g.fillRect(ii - 3 * marginNode, jj - 3 * marginNode, 6 * marginNode, 6 * marginNode);  //4488
+                    g.setColor(Color.BLACK);
+                    g.drawString(id, ii + 6 * marginNode, jj + 6 * marginNode);
+                }else if(n.IsStation){
+                    marginNode = 3;
+                    Color color = new Color(0,23,71);
+                    g.setColor(color);
+                    g.fillOval(ii - 3 * marginNode, jj - 3 * marginNode, 6 * marginNode, 6 * marginNode); //2244
                     String id = Integer.toString(n.NodeId);
-                    g.drawString(id, ii + 6 * marginNode, jj + 6 * marginNode); //88
+                    g.setColor(Color.BLACK);
+                    g.drawString(id, ii + 6 * marginNode, jj + 6 * marginNode);
+                }else{
+                    g.setColor(new Color(80,106,212));
+                    g.fillOval(ii - 3 * marginNode, jj - 3 * marginNode, 6 * marginNode, 6 * marginNode); //2244
+                    String id = Integer.toString(n.NodeId);
+                    g.setColor(Color.BLACK);
+                    g.drawString(id, ii + 6 * marginNode, jj + 6 * marginNode);
                 }
             }
 
         }
-
-        String cst = "VRP solución para "+s.numeroClientes + " clientes con un costo de: " + s.Costo;
-        g.drawString(cst, 10, 10);
-
+        marginNode = 5;
+        g.setFont(new Font("TimesRoman",Font.PLAIN,40));
+        g.setColor(new Color(242,191,128));
+        g.drawString("Nodo deposito", 10 * marginNode+5, 10 * marginNode);
+        g.fillRect(10 * marginNode-30,10* marginNode-25,25,25);
+        g.setColor(new Color(0,23,71));
+        g.drawString("Nodo estación",10 * marginNode+5,20 * marginNode);
+        g.fillRect(10* marginNode-30,20* marginNode-25,25,25);
+        g.setColor(new Color(80,106,212));
+        g.drawString("Nodo cliente", 10 * marginNode+5, 30 * marginNode);
+        g.fillRect(10* marginNode-30,30* marginNode-25,25,25);
         fileName = fileName + ".png";
         File f = new File(fileName);
         try
