@@ -277,7 +277,7 @@ public class Solution
         int DimensionCustomer = CostMatrix[1].length;
         int TABU_Matrix[][] = new int[DimensionCustomer+1][DimensionCustomer+1];
 
-        MejorSolucionCosto = this.Costo; //Initial Solution Cost
+        MejorSolucionCosto = this.Costo;
 
         boolean Termination = false;
 
@@ -289,20 +289,19 @@ public class Solution
             for (VehIndexFrom = 0; VehIndexFrom <  this.Vehiculos.length; VehIndexFrom++) {
                 RouteFrom =  this.Vehiculos[VehIndexFrom].Route;
                 int RoutFromLength = RouteFrom.size();
-                for (int i = 1; i < RoutFromLength - 1; i++) { //Not possible to move depot!
+                for (int i = 1; i < RoutFromLength - 1; i++) {
 
                     for (VehIndexTo = 0; VehIndexTo <  this.Vehiculos.length; VehIndexTo++) {
                         RouteTo =   this.Vehiculos[VehIndexTo].Route;
                         int RouteTolength = RouteTo.size();
-                        for (int j = 0; (j < RouteTolength - 1); j++) {//Not possible to move after last Depot!
+                        for (int j = 0; (j < RouteTolength - 1); j++) {
 
                             MovingNodeDemand = RouteFrom.get(i).demand;
 
                             if ((VehIndexFrom == VehIndexTo) ||  this.Vehiculos[VehIndexTo].CheckIfFits(MovingNodeDemand)) {
-                                //If we assign to a different route check capacity constrains
-                                //if in the new route is the same no need to check for capacity
 
-                                if (((VehIndexFrom == VehIndexTo) && ((j == i) || (j == i - 1))) == false)  // Not a move that Changes solution cost
+
+                                if (((VehIndexFrom == VehIndexTo) && ((j == i) || (j == i - 1))) == false)
                                 {
                                     double MinusCost1 = CostMatrix[RouteFrom.get(i - 1).NodeId][RouteFrom.get(i).NodeId];
                                     double MinusCost2 = CostMatrix[RouteFrom.get(i).NodeId][RouteFrom.get(i + 1).NodeId];
@@ -312,7 +311,6 @@ public class Solution
                                     double AddedCost2 = CostMatrix[RouteTo.get(j).NodeId][RouteFrom.get(i).NodeId];
                                     double AddedCost3 = CostMatrix[RouteFrom.get(i).NodeId][RouteTo.get(j + 1).NodeId];
 
-                                    //Check if the move is a Tabu! - If it is Tabu break
                                     if ((TABU_Matrix[RouteFrom.get(i - 1).NodeId][RouteFrom.get(i+1).NodeId] != 0)
                                             || (TABU_Matrix[RouteTo.get(j).NodeId][RouteFrom.get(i).NodeId] != 0)
                                             || (TABU_Matrix[RouteFrom.get(i).NodeId][RouteTo.get(j+1).NodeId] != 0)) {

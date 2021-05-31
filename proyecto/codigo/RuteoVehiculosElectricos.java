@@ -1,7 +1,7 @@
 import java.io.*;
 
 /**
- * Clase encargada de leer los datos y poner a funcionar el programa XD.
+ * Clase encargada de leer los datos y poner a funcionar el programa.
  *
  * @author Julian Gomez Benitez, Juan Pablo Rincon Usma
  * @see Pair
